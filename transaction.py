@@ -17,35 +17,15 @@ class Transaction:
 
     def __init__(self, sender_address, receiver_address, 
                     amount, transaction_inputs, 
-                    transaction_outputs=None):
+                    transaction_outputs=[]):
 
         self.sender_address = sender_address
         self.receiver_address = receiver_address
         self.amount = amount
         self.transaction_inputs = transaction_inputs
-        self.transaction_outputs = []
+        self.transaction_outputs = transaction_outputs
         self.signature = ''
         self.transaction_id = self.hash_transaction().hexdigest()
-        
-
-        # Prepei na brw to wallet tou sender -- sender_wallet
-
-        # Transaction outputs
-
-        sender_wallet = 5
-        for i in range(2):
-            d = dict()
-            if i == 0:
-                d["trans_id"] = self.transaction_id
-                d["target"] = self.receiver_address
-                d["amount"] = self.amount
-
-            else:
-                d["trans_id"] = self.transaction_id
-                d["target"] = self.sender_address
-                d["amount"] = sender_wallet - self.amount                
-
-            self.transaction_outputs.append(d)
 
 
     def transaction_to_json(self):
@@ -81,7 +61,7 @@ class Transaction:
         signer = PKCS1_v1_5.new(rsa_key)
         
         self.transaction_id = hash_obj.hexdigest()
-        self.signature = base64.b64encode(signer.sign(hash_obj)).decode()
+        self.signature = (base64.b64encode(signer.sign(hash_obj)).decode())
 
         return
 

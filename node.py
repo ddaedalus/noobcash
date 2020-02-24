@@ -11,6 +11,7 @@ import time
 import requests
 import copy
 import threading
+import datetime, time
 
 master_port = 5000
 bootstrap_ip = 'http://127.0.0.1:' 
@@ -183,7 +184,7 @@ class Node:
 
         node_block = Block(genesis['index'], genesis['transactions'], 
                         genesis['nonce'], genesis['prev_hash'], genesis['timestamp'])
-        node_block.hash_block()
+        #node_block.hash_block()
         self.chain.list_of_blocks.append(node_block)
         trans_block_list = json.loads(genesis['transactions'])   # list
         trans = trans_block_list  # only one trans per child
@@ -253,10 +254,12 @@ class Node:
         d["amount"] = new_trans.amount
         transaction_outputs.append(d)
         # output[1]
+        d = d.copy()
         d["trans_id"] = new_trans.transaction_id
         d["target"] = new_trans.sender_address
         d["amount"] = result   # remaining money from used unspent
         transaction_outputs.append(d)
+        print(d)
         
 
         print(d)
@@ -301,7 +304,7 @@ class Node:
         for ring in self.ring:
             if not (ring == self.ring[self.id]):
                 requests.post(ring + "/all/broadcast", json=data, headers=headers)
-        
+
         return
 
 
@@ -317,7 +320,7 @@ class Node:
 
         local_ids = [i['trans_id'] for i in self.trans_dict[self.all_public_keys[sender_id]]]
         
-        # print(all([i in local_ids for i in t.transaction_inputs]))
+        print(sender_id)
         return all([i in local_ids for i in t.transaction_inputs]) and validate_signature
 
 
@@ -337,7 +340,6 @@ class Node:
             elif self.all_public_keys[i] == receiver_key:
                 receiver_id = i
 
-        print(sender_key, sender_id, 'gdgfdfgd')
         # Check if the broadcasted transaction is valid 
         if self.validate_transaction(t, sender_id):
             
@@ -351,7 +353,7 @@ class Node:
                         self.trans_dict[sender_key].remove(self.trans_dict[sender_key][idx])
 
             self.trans_dict[receiver_key].append(t.transaction_outputs[0])
-            self.trans_dict[receiver_key].append(t.transaction_outputs[1])
+            self.trans_dict[sender_key].append(t.transaction_outputs[1])
 
             if receiver_key == self.public_key:
                 self.unspent.append(t.transaction_outputs[0])
@@ -369,16 +371,24 @@ class Node:
         '''
 
         # Check whether the block is valid using previous hash of the last block in blockchain
+        b = json.loads(b)
+        ttt = [i for i in b['transactions']]
+        #print('gggg', b['prev_hash'], self.chain.list_of_blocks[-1].cur_hash)
         if not b['prev_hash'] == self.chain.list_of_blocks[-1].cur_hash:
             return False
 
         # Valid case
-        block = Block(b['index'], b['transactions'], b['nonce'], b['prev_hash'], b['timestamp']) # create a new block
+        block1 = Block(int(b['index']), ttt, int(b['nonce']), b['prev_hash'], float(b['timestamp'])) # create a new block
         
+        #block.hash_block()
+        #print('VVVVVVVVVVVVVVV', json.loads(block1.block_to_json())['cur_hash'])
+        #print((block1.hash_block()))
+        #print(block1.hash_block(), b['cur_hash'])
         # Check whether the given nonce is valid
-        if block.hash_block() == b['cur_hash']:
+        if block1.hash_block() == b['cur_hash']:
             self.chain.miner.set()
-            self.chain.list_of_blocks.append(block)
+            block1.cur_hash = b['cur_hash']
+            self.chain.list_of_blocks.append(block1)
         
             return True
 
