@@ -4,18 +4,19 @@ import requests
 import json
 from flask import jsonify
 
+
 # case of asynchronous termination
 def signal_handler(sig, frame):
-
     print("Forced Termination")
     # exiting python, 0 means "successful termination"
     sys.exit(0)
 
 
 port = int(sys.argv[1])
+ip = str(sys.argv[2])
 
 # chech if we have exactly one port
-if(len(sys.argv)<2 or len(sys.argv)>2):
+if (len(sys.argv) < 3 or len(sys.argv) > 3):
     print("Please enter the port you want to work with")
     print("Write the following \n")
     print("python3 cli.py <port> ")
@@ -25,17 +26,17 @@ if(len(sys.argv)<2 or len(sys.argv)>2):
 print("")
 print("Welcome! How can i help you ?")
 
-base_url = "http://0.0.0.0:"+str(port)+"/"
+base_url = 'http://' + str(ip) + ':' + str(port) + "/"
 
-flag=1
+flag = 1
 
-while(1):
+while (1):
 
     print("\n")
 
     # flag = 1 correct action
     # flag = 0 invalid action
-    if(flag==0):
+    if (flag == 0):
         flag = 1
         print(" Invalid action, type help! ")
         action = input()
@@ -52,26 +53,27 @@ while(1):
 
         # inputs form: id"number" amount
         # we take number and amount
-        payload = {'address': inputs[1][2::],'amount': inputs[2]}
+        payload = {'address': inputs[1][2::], 'amount': inputs[2]}
         payload = json.dumps(payload)
 
-        response = requests.post(url,data=payload,headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
-        print(response.json())   
+        response = requests.post(url, data=payload,
+                                 headers={'Content-type': 'application/json', 'Accept': 'text/plain'})
+        print(response.json())
 
-    # case of show balance or view
+        # case of show balance or view
     elif (action == 'balance' or action == 'view'):
 
         print("##################### \n")
 
-        if(action == 'balance'):
+        if (action == 'balance'):
             url = base_url + "show_balance"
         else:
             url = base_url + "view_transactions"
 
         response = requests.get(url)
         print(response.json())
-    
-    #case of help
+
+    # case of help
     elif (action == 'help'):
 
         print("##################### \n")
@@ -88,7 +90,7 @@ while(1):
         # case of balance
         print("Type: << balance >> in order to view this node account balance \n")
 
-        # case of help 
+        # case of help
         print("Type: << help >> in order to view the possible actions \n")
 
         # case of exit
@@ -100,6 +102,6 @@ while(1):
         print("Exiting...")
         print("Byeee")
         sys.exit(0)
-    
+
     else:
         flag = 0
